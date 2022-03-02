@@ -1,15 +1,11 @@
 ## regex engine
 
----
-
 Java 实现的正则表达式引擎
 一个小 demo，实现了一些基本功能，引擎基于 NFA
 
 [参考博客](https://deniskyashif.com/2019/02/17/implementing-a-regular-expression-engine/)
 
 ### 支持特性
-
----
 
 - 或： **|**
 - 特殊字符： **.**
@@ -22,8 +18,6 @@ Java 实现的正则表达式引擎
   - **{low, high}**
 
 ### 示例
-
----
 
 ```java
 public class RegexTest {
