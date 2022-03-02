@@ -6,7 +6,6 @@ Java 实现的正则表达式引擎
 [参考博客](https://deniskyashif.com/2019/02/17/implementing-a-regular-expression-engine/)
 
 ### 支持特性
-
 - 或： **|**
 - 特殊字符： **.**
 - 字符集: 
@@ -18,7 +17,6 @@ Java 实现的正则表达式引擎
   - **{low, high}**
 
 ### 示例
-
 ```java
 public class RegexTest {
     @Test
