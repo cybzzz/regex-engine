@@ -11,6 +11,7 @@ import java.util.function.Predicate;
 public class NFA {
     public State start;
     public State end;
+    private static final ArrayList<EpsilonEdge> countEdges = new ArrayList<>();
 
     public NFA(State start, State end) {
         this.start = start;
@@ -54,11 +55,13 @@ public class NFA {
     }
 
     public static void addEpsilonTransition(State from, State to) {
-        from.epsilonTransitions.push(new EpsilonEdge(false, 1, to));
+        from.epsilonTransitions.push(new EpsilonEdge(false, 1, 1, to));
     }
 
-    public static void addEpsilonTransition(State from, State to, int count) {
-        from.epsilonTransitions.push(new EpsilonEdge(true, count, to));
+    public static void addEpsilonTransition(State from, State to, int low, int high) {
+        EpsilonEdge edge = new EpsilonEdge(true, low, high, to);
+        from.epsilonTransitions.push(edge);
+        countEdges.add(edge);
     }
 
     public static void addTransition(State from, State to, String symbol) {
@@ -169,9 +172,9 @@ public class NFA {
 
         if (low == 0) {
             addEpsilonTransition(start, end);
+            low++;
         }
-
-        addEpsilonTransition(nfa.end, nfa.start, high);
+        addEpsilonTransition(nfa.end, nfa.start, low, high);
 
         nfa.end.isEnd = false;
 
@@ -181,11 +184,8 @@ public class NFA {
     public static void addNextState(State state, ArrayDeque<State> nextStates, ArrayDeque<State> visited) {
         if (!state.epsilonTransitions.isEmpty()) {
             for (EpsilonEdge edge : state.epsilonTransitions) {
-                if (edge.getCount() == 0) {
-                    continue;
-                }
                 if (edge.isNeedCount()) {
-                    edge.setCount(edge.getCount() - 1);
+                    edge.setCount(edge.getCount() + 1);
                 }
                 State to = edge.getTo();
                 if (!visited.contains(to)) {
@@ -214,6 +214,13 @@ public class NFA {
                 }
             }
             currentStates = nextStates;
+        }
+
+        for (EpsilonEdge edge : countEdges) {
+            if (edge.getCount() < edge.getLow() || edge.getCount() > edge.getHigh()) {
+                return false;
+            }
+            edge.setCount(0);
         }
 
         return currentStates.stream().anyMatch(st -> st.isEnd);

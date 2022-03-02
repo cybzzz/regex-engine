@@ -9,13 +9,13 @@ import java.util.HashMap;
  * @author cyb
  */
 public class Parser {
-    public static HashMap<String, Integer> operatorPrecedence = new HashMap<>() {{
-        put("|", 0);
-        put("&", 1);
-        put("*", 2);
-        put("+", 2);
-        put("?", 2);
-        put("{", 2);
+    public static HashMap<Character, Integer> operatorPrecedence = new HashMap<>() {{
+        put('|', 0);
+        put('&', 1);
+        put('*', 2);
+        put('+', 2);
+        put('?', 2);
+        put('{', 2);
     }};
 
     public static ArrayList<Atom> insertExplicitConcatOperator(String s) {
@@ -72,7 +72,7 @@ public class Parser {
         Deque<Atom> operatorStack = new ArrayDeque<>();
         for (int i = 0; i < list.size(); i++) {
             Atom token = list.get(i);
-            if (token.getS().matches("[&|*+?]")) {
+            if (token.getS().matches("[&|*+?]|(\\{.+)")) {
                 while (!operatorStack.isEmpty() && !operatorStack.peek().getS().equals("(")
                         && operatorPrecedence.get(operatorStack.peek().getS().charAt(0)) >= operatorPrecedence.get(token.getS().charAt(0))) {
                     res.add(operatorStack.pop());

@@ -42,6 +42,6 @@ public class Atom {
 
     @Override
     public String toString() {
-        return "Atom\"" + s + '\"';
+        return s;
     }
 }
