@@ -15,6 +15,7 @@ public class Parser {
         put("*", 2);
         put("+", 2);
         put("?", 2);
+        put("{", 2);
     }};
 
     public static ArrayList<Atom> insertExplicitConcatOperator(String s) {
@@ -27,15 +28,27 @@ public class Parser {
                     throw new RuntimeException("非法转义字符");
                 }
                 char next = s.charAt(i + 1);
-                if (!String.valueOf(next).matches("[dDwWsS]")) {
+                if (String.valueOf(next).matches("[^dDwWsS]")) {
                     throw new RuntimeException("非法转义字符");
                 }
                 list.add(new Atom("\\" + next));
                 i += 1;
-                continue;
+            } else if (token == '{') {
+                StringBuilder stringBuilder = new StringBuilder("{");
+                int count = 1;
+                while (i + count < s.length()) {
+                    char next = s.charAt(i + count);
+                    stringBuilder.append(next);
+                    count++;
+                    if (next == '}') {
+                        break;
+                    }
+                }
+                list.add(new Atom(stringBuilder.toString()));
+                i += count - 1;
+            } else {
+                list.add(new Atom(token));
             }
-
-            list.add(new Atom(token));
 
             if (token == '(' || token == '|') {
                 continue;
@@ -43,7 +56,7 @@ public class Parser {
 
             if (i < s.length() - 1) {
                 char next = s.charAt(i + 1);
-                if (next == '*' || next == '|' || next == ')' || next == '+' || next == '?') {
+                if (next == '*' || next == '|' || next == ')' || next == '+' || next == '?' || next == '{') {
                     continue;
                 }
 
@@ -61,7 +74,7 @@ public class Parser {
             Atom token = list.get(i);
             if (token.getS().matches("[&|*+?]")) {
                 while (!operatorStack.isEmpty() && !operatorStack.peek().getS().equals("(")
-                        && operatorPrecedence.get(operatorStack.peek().getS()) >= operatorPrecedence.get(token.getS())) {
+                        && operatorPrecedence.get(operatorStack.peek().getS().charAt(0)) >= operatorPrecedence.get(token.getS().charAt(0))) {
                     res.add(operatorStack.pop());
                 }
                 operatorStack.push(token);

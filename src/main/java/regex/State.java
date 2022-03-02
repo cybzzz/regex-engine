@@ -10,7 +10,7 @@ import java.util.function.Predicate;
 public class State {
     public boolean isEnd;
     public HashMap<Predicate<Character>, State> transition;
-    public ArrayDeque<State> epsilonTransitions;
+    public ArrayDeque<EpsilonEdge> epsilonTransitions;
 
     public State(boolean isEnd) {
         this.isEnd = isEnd;

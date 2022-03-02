@@ -40,14 +40,25 @@ public class NFA {
                     NFA left = stack.pop();
                     stack.push(concat(left, right));
                 }
-                default -> stack.push(fromSymbol(token));
+                default -> {
+                    if (token.charAt(0) == '{') {
+                        String[] split = token.substring(1, token.length() - 1).split(",");
+                        stack.push(lowToHigh(stack.pop(), Integer.parseInt(split[0]), Integer.parseInt(split[1])));
+                    } else {
+                        stack.push(fromSymbol(token));
+                    }
+                }
             }
         }
         return stack.pop();
     }
 
     public static void addEpsilonTransition(State from, State to) {
-        from.epsilonTransitions.push(to);
+        from.epsilonTransitions.push(new EpsilonEdge(false, 1, to));
+    }
+
+    public static void addEpsilonTransition(State from, State to, int count) {
+        from.epsilonTransitions.push(new EpsilonEdge(true, count, to));
     }
 
     public static void addTransition(State from, State to, String symbol) {
@@ -149,12 +160,37 @@ public class NFA {
         return new NFA(start, end);
     }
 
+    public static NFA lowToHigh(NFA nfa, int low, int high) {
+        State start = new State(false);
+        State end = new State(true);
+
+        addEpsilonTransition(start, nfa.start);
+        addEpsilonTransition(nfa.end, end);
+
+        if (low == 0) {
+            addEpsilonTransition(start, end);
+        }
+
+        addEpsilonTransition(nfa.end, nfa.start, high);
+
+        nfa.end.isEnd = false;
+
+        return new NFA(start, end);
+    }
+
     public static void addNextState(State state, ArrayDeque<State> nextStates, ArrayDeque<State> visited) {
         if (!state.epsilonTransitions.isEmpty()) {
-            for (State st : state.epsilonTransitions) {
-                if (!visited.contains(st)) {
-                    visited.push(st);
-                    addNextState(st, nextStates, visited);
+            for (EpsilonEdge edge : state.epsilonTransitions) {
+                if (edge.getCount() == 0) {
+                    continue;
+                }
+                if (edge.isNeedCount()) {
+                    edge.setCount(edge.getCount() - 1);
+                }
+                State to = edge.getTo();
+                if (!visited.contains(to)) {
+                    visited.push(to);
+                    addNextState(to, nextStates, visited);
                 }
             }
         } else {
