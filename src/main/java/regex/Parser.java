@@ -1,6 +1,7 @@
 package regex;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 
@@ -8,19 +9,33 @@ import java.util.HashMap;
  * @author cyb
  */
 public class Parser {
-    public static HashMap<Character, Integer> operatorPrecedence = new HashMap<>() {{
-        put('|', 0);
-        put('&', 1);
-        put('*', 2);
-        put('+', 2);
-        put('?', 2);
+    public static HashMap<String, Integer> operatorPrecedence = new HashMap<>() {{
+        put("|", 0);
+        put("&", 1);
+        put("*", 2);
+        put("+", 2);
+        put("?", 2);
     }};
 
-    public static String insertExplicitConcatOperator(String s) {
-        StringBuilder res = new StringBuilder();
+    public static ArrayList<Atom> insertExplicitConcatOperator(String s) {
+        ArrayList<Atom> list = new ArrayList<>();
         for (int i = 0; i < s.length(); i++) {
             char token = s.charAt(i);
-            res.append(token);
+
+            if (token == '\\') {
+                if (i == s.length() - 1) {
+                    throw new RuntimeException("非法转义字符");
+                }
+                char next = s.charAt(i + 1);
+                if (!String.valueOf(next).matches("[dDwWsS]")) {
+                    throw new RuntimeException("非法转义字符");
+                }
+                list.add(new Atom("\\" + next));
+                i += 1;
+                continue;
+            }
+
+            list.add(new Atom(token));
 
             if (token == '(' || token == '|') {
                 continue;
@@ -32,39 +47,40 @@ public class Parser {
                     continue;
                 }
 
-                res.append('&');
+                list.add(new Atom('&'));
             }
         }
-        return res.toString();
+        return list;
     }
 
     @SuppressWarnings("all")
-    public static String toPostfix(String s) {
-        StringBuilder res = new StringBuilder();
-        Deque<Character> operatorStack = new ArrayDeque<>();
-        for (int i = 0; i < s.length(); i++) {
-            char token = s.charAt(i);
-            if (String.valueOf(token).matches("[&|*+?]")) {
-                while (!operatorStack.isEmpty() && operatorStack.peek() != '(' && operatorPrecedence.get(operatorStack.peek()) >= operatorPrecedence.get(token)) {
-                    res.append(operatorStack.pop());
+    public static ArrayList<Atom> toPostfix(ArrayList<Atom> list) {
+        ArrayList<Atom> res = new ArrayList<>();
+        Deque<Atom> operatorStack = new ArrayDeque<>();
+        for (int i = 0; i < list.size(); i++) {
+            Atom token = list.get(i);
+            if (token.getS().matches("[&|*+?]")) {
+                while (!operatorStack.isEmpty() && !operatorStack.peek().getS().equals("(")
+                        && operatorPrecedence.get(operatorStack.peek().getS()) >= operatorPrecedence.get(token.getS())) {
+                    res.add(operatorStack.pop());
                 }
                 operatorStack.push(token);
-            } else if (token == '(') {
+            } else if (token.getS().equals("(")) {
                 operatorStack.push(token);
-            } else if (token == ')') {
-                while (operatorStack.peek() != '(') {
-                    res.append(operatorStack.pop());
+            } else if (token.getS().equals(")")) {
+                while (!operatorStack.peek().getS().equals("(")) {
+                    res.add(operatorStack.pop());
                 }
                 operatorStack.pop();
             } else {
-                res.append(token);
+                res.add(token);
             }
         }
 
         while (!operatorStack.isEmpty()) {
-            res.append(operatorStack.pop());
+            res.add(operatorStack.pop());
         }
 
-        return res.toString();
+        return res;
     }
 }

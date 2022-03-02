@@ -1,6 +1,7 @@
 package regex;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.function.Predicate;
 
@@ -16,25 +17,25 @@ public class NFA {
         this.end = end;
     }
 
-    public static NFA toNFA(String s) {
-        if (("").equals(s)) {
+    public static NFA toNFA(ArrayList<Atom> list) {
+        if (list.isEmpty()) {
             return fromEpsilon();
         }
 
         Deque<NFA> stack = new ArrayDeque<>();
 
-        for (int i = 0; i < s.length(); i++) {
-            char token = s.charAt(i);
+        for (Atom atom : list) {
+            String token = atom.getS();
             switch (token) {
-                case '*' -> stack.push(closure(stack.pop()));
-                case '+' -> stack.push(oneOrMore(stack.pop()));
-                case '?' -> stack.push(zeroOrOne(stack.pop()));
-                case '|' -> {
+                case "*" -> stack.push(closure(stack.pop()));
+                case "+" -> stack.push(oneOrMore(stack.pop()));
+                case "?" -> stack.push(zeroOrOne(stack.pop()));
+                case "|" -> {
                     NFA right = stack.pop();
                     NFA left = stack.pop();
                     stack.push(union(left, right));
                 }
-                case '&' -> {
+                case "&" -> {
                     NFA right = stack.pop();
                     NFA left = stack.pop();
                     stack.push(concat(left, right));
@@ -49,12 +50,25 @@ public class NFA {
         from.epsilonTransitions.push(to);
     }
 
-    public static void addTransition(State from, State to, Character symbol) {
-        if (symbol == '.') {
-            from.transition.put(c -> c != '\n' && c != '\r', to);
-        } else {
-            from.transition.put(c -> c.equals(symbol), to);
+    public static void addTransition(State from, State to, String symbol) {
+        switch (symbol) {
+            case "." -> from.transition.put(c -> c != '\n' && c != '\r', to);
+            case "\\d" -> from.transition.put(Character::isDigit, to);
+            case "\\D" -> from.transition.put(c -> !Character.isDigit(c), to);
+            case "\\w" -> from.transition.put(c -> isLetter(c) || Character.isDigit(c), to);
+            case "\\W" -> from.transition.put(c -> !isLetter(c) && !Character.isDigit(c), to);
+            case "\\s" -> from.transition.put(NFA::isSpace, to);
+            case "\\S" -> from.transition.put(c -> !isSpace(c), to);
+            default -> from.transition.put(c -> c.equals(symbol.charAt(0)), to);
         }
+    }
+
+    private static boolean isLetter(char c) {
+        return (c <= 122 && c >= 97) || (c <= 90 && c >= 65);
+    }
+
+    private static boolean isSpace(char c) {
+        return c == '\n' || c == '\t' || c == '\r' || c == '\f';
     }
 
     public static NFA fromEpsilon() {
@@ -65,7 +79,7 @@ public class NFA {
         return new NFA(start, end);
     }
 
-    public static NFA fromSymbol(Character symbol) {
+    public static NFA fromSymbol(String symbol) {
         State start = new State(false);
         State end = new State(true);
         addTransition(start, end, symbol);

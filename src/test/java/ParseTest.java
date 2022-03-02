@@ -2,8 +2,8 @@ import regex.Parser;
 
 public class ParseTest {
     public static void main(String[] args) {
-        String s = Parser.insertExplicitConcatOperator(".+c");
-        System.out.println(s);
-        System.out.println(Parser.toPostfix(s));
+        var temp = Parser.insertExplicitConcatOperator("\\d?c");
+        System.out.println(temp);
+        System.out.println(Parser.toPostfix(temp));
     }
 }

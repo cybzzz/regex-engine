@@ -21,7 +21,7 @@ public class RegexTest {
     }
 
     public static Function<String, Boolean> createMatch(String s) {
-        String exp = Parser.toPostfix(Parser.insertExplicitConcatOperator(s));
+        var exp = Parser.toPostfix(Parser.insertExplicitConcatOperator(s));
         NFA nfa = NFA.toNFA(exp);
 
         return string -> NFA.search(nfa, string);
