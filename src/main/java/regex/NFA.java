@@ -2,6 +2,7 @@ package regex;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.function.Predicate;
 
 /**
  * @author cyb
@@ -27,7 +28,7 @@ public class NFA {
             switch (token) {
                 case '*' -> stack.push(closure(stack.pop()));
                 case '+' -> stack.push(oneOrMore(stack.pop()));
-                case '?' -> stack.push(zeroOrone(stack.pop()));
+                case '?' -> stack.push(zeroOrOne(stack.pop()));
                 case '|' -> {
                     NFA right = stack.pop();
                     NFA left = stack.pop();
@@ -49,7 +50,11 @@ public class NFA {
     }
 
     public static void addTransition(State from, State to, Character symbol) {
-        from.transition.put(symbol, to);
+        if (symbol == '.') {
+            from.transition.put(c -> c != '\n' && c != '\r', to);
+        } else {
+            from.transition.put(c -> c.equals(symbol), to);
+        }
     }
 
     public static NFA fromEpsilon() {
@@ -117,7 +122,7 @@ public class NFA {
         return new NFA(start, end);
     }
 
-    public static NFA zeroOrone(NFA nfa) {
+    public static NFA zeroOrOne(NFA nfa) {
         State start = new State(false);
         State end = new State(true);
 
@@ -152,17 +157,15 @@ public class NFA {
             ArrayDeque<State> nextStates = new ArrayDeque<>();
 
             for (State state : currentStates) {
-                State nextState = state.transition.get(symbol);
-                if (nextState != null) {
-                    addNextState(nextState, nextStates, new ArrayDeque<>());
+                for (Predicate<Character> pre : state.transition.keySet()) {
+                    if (pre.test(symbol)) {
+                        addNextState(state.transition.get(pre), nextStates, new ArrayDeque<>());
+                    }
                 }
             }
             currentStates = nextStates;
         }
 
-        for (State state : currentStates) {
-            return state.isEnd;
-        }
-        return false;
+        return currentStates.stream().anyMatch(st -> st.isEnd);
     }
 }
