@@ -9,13 +9,12 @@ import java.util.function.Function;
 public class RegexTest {
     @Test
     public void Test() {
-        String regex = "(a|b)*c";
-        Function<String, Boolean> match = createMatch(regex);
+        Function<String, Boolean> match = createMatch("(a|b)*c");
         assertTrue(match.apply("aabbbc"));
         assertTrue(match.apply("c"));
         assertFalse(match.apply("aabbb"));
-        regex = ".\\d{3,4}c?";
-        match = createMatch(regex);
+
+        match = createMatch(".\\d{3,4}c?");
         assertTrue(match.apply("w123"));
         assertTrue(match.apply("c0000c"));
         assertFalse(match.apply("000c"));
