@@ -2,6 +2,10 @@ package regex;
 
 import java.util.Objects;
 
+/**
+ * @author cyb
+ * 解析过程中的单元
+ */
 public class Atom {
     private String s;
 

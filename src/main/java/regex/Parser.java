@@ -9,6 +9,9 @@ import java.util.HashMap;
  * @author cyb
  */
 public class Parser {
+    /**
+     * 操作符优先级
+     */
     public static HashMap<Character, Integer> operatorPrecedence = new HashMap<>() {{
         put('|', 0);
         put('&', 1);
@@ -24,6 +27,7 @@ public class Parser {
             char token = s.charAt(i);
 
             if (token == '\\') {
+                // 字符集
                 if (i == s.length() - 1) {
                     throw new RuntimeException("非法转义字符");
                 }
@@ -34,6 +38,7 @@ public class Parser {
                 list.add(new Atom("\\" + next));
                 i += 1;
             } else if (token == '{') {
+                // { } 量词
                 StringBuilder stringBuilder = new StringBuilder("{");
                 int count = 1;
                 while (i + count < s.length()) {
@@ -55,6 +60,7 @@ public class Parser {
             }
 
             if (i < s.length() - 1) {
+                // 是否需要显示连接运算符
                 char next = s.charAt(i + 1);
                 if (next == '*' || next == '|' || next == ')' || next == '+' || next == '?' || next == '{') {
                     continue;
@@ -84,6 +90,7 @@ public class Parser {
                 while (!operatorStack.peek().getS().equals("(")) {
                     res.add(operatorStack.pop());
                 }
+                // pop 左括号
                 operatorStack.pop();
             } else {
                 res.add(token);

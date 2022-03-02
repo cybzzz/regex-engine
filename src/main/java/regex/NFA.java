@@ -11,7 +11,11 @@ import java.util.function.Predicate;
 public class NFA {
     public State start;
     public State end;
-    private static final ArrayList<EpsilonEdge> countEdges = new ArrayList<>();
+
+    /**
+     * NFA 中有次数限制的 EpsilonEdge
+     */
+    private static final ArrayList<EpsilonEdge> COUNT_EDGES = new ArrayList<>();
 
     public NFA(State start, State end) {
         this.start = start;
@@ -61,7 +65,7 @@ public class NFA {
     public static void addEpsilonTransition(State from, State to, int low, int high) {
         EpsilonEdge edge = new EpsilonEdge(true, low, high, to);
         from.epsilonTransitions.push(edge);
-        countEdges.add(edge);
+        COUNT_EDGES.add(edge);
     }
 
     public static void addTransition(State from, State to, String symbol) {
@@ -181,6 +185,13 @@ public class NFA {
         return new NFA(start, end);
     }
 
+    /**
+     * 进行所有可以的 epsilon 转换
+     *
+     * @param state      起始状态
+     * @param nextStates 下一个状态集
+     * @param visited    访问过的状态
+     */
     public static void addNextState(State state, ArrayDeque<State> nextStates, ArrayDeque<State> visited) {
         if (!state.epsilonTransitions.isEmpty()) {
             for (EpsilonEdge edge : state.epsilonTransitions) {
@@ -199,7 +210,10 @@ public class NFA {
     }
 
     public static boolean search(NFA nfa, String s) {
+        // 当前状态集
         ArrayDeque<State> currentStates = new ArrayDeque<>();
+
+        // 初始化
         addNextState(nfa.start, currentStates, new ArrayDeque<>());
 
         for (int i = 0; i < s.length(); i++) {
@@ -216,7 +230,8 @@ public class NFA {
             currentStates = nextStates;
         }
 
-        for (EpsilonEdge edge : countEdges) {
+        for (EpsilonEdge edge : COUNT_EDGES) {
+            // 检查 EpsilonEdge 次数是否在限制内
             if (edge.getCount() < edge.getLow() || edge.getCount() > edge.getHigh()) {
                 return false;
             }

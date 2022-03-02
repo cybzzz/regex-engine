@@ -1,10 +1,12 @@
 import org.junit.Test;
-import static org.junit.Assert.*;
 import regex.NFA;
 import regex.Parser;
 
 import java.util.Scanner;
 import java.util.function.Function;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class RegexTest {
     @Test

@@ -1,5 +1,9 @@
 package regex;
 
+/**
+ * @author cyb
+ * epsilon 转换的边
+ */
 public class EpsilonEdge {
     private boolean needCount;
     private int low;
