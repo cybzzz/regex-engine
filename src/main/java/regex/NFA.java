@@ -26,12 +26,14 @@ public class NFA {
             char token = s.charAt(i);
             switch (token) {
                 case '*' -> stack.push(closure(stack.pop()));
+                case '+' -> stack.push(oneOrMore(stack.pop()));
+                case '?' -> stack.push(zeroOrone(stack.pop()));
                 case '|' -> {
                     NFA right = stack.pop();
                     NFA left = stack.pop();
                     stack.push(union(left, right));
                 }
-                case '.' -> {
+                case '&' -> {
                     NFA right = stack.pop();
                     NFA left = stack.pop();
                     stack.push(concat(left, right));
@@ -92,10 +94,37 @@ public class NFA {
         State end = new State(true);
 
         addEpsilonTransition(start, end);
-        addEpsilonTransition(start, nfa.start);
 
+        addEpsilonTransition(start, nfa.start);
+        addEpsilonTransition(nfa.end, end);
+
+        addEpsilonTransition(nfa.end, nfa.start);
+        nfa.end.isEnd = false;
+
+        return new NFA(start, end);
+    }
+
+    public static NFA oneOrMore(NFA nfa) {
+        State start = new State(false);
+        State end = new State(true);
+
+        addEpsilonTransition(start, nfa.start);
         addEpsilonTransition(nfa.end, end);
         addEpsilonTransition(nfa.end, nfa.start);
+
+        nfa.end.isEnd = false;
+
+        return new NFA(start, end);
+    }
+
+    public static NFA zeroOrone(NFA nfa) {
+        State start = new State(false);
+        State end = new State(true);
+
+        addEpsilonTransition(start, nfa.start);
+        addEpsilonTransition(nfa.end, end);
+        addEpsilonTransition(start, end);
+
         nfa.end.isEnd = false;
 
         return new NFA(start, end);

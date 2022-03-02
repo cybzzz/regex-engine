@@ -10,8 +10,10 @@ import java.util.HashMap;
 public class Parser {
     public static HashMap<Character, Integer> operatorPrecedence = new HashMap<>() {{
         put('|', 0);
-        put('.', 1);
+        put('&', 1);
         put('*', 2);
+        put('+', 2);
+        put('?', 2);
     }};
 
     public static String insertExplicitConcatOperator(String s) {
@@ -26,22 +28,23 @@ public class Parser {
 
             if (i < s.length() - 1) {
                 char next = s.charAt(i + 1);
-                if (next == '*' || next == '|' || next == ')') {
+                if (next == '*' || next == '|' || next == ')' || next == '+' || next == '?') {
                     continue;
                 }
 
-                res.append('.');
+                res.append('&');
             }
         }
         return res.toString();
     }
 
+    @SuppressWarnings("all")
     public static String toPostfix(String s) {
         StringBuilder res = new StringBuilder();
         Deque<Character> operatorStack = new ArrayDeque<>();
         for (int i = 0; i < s.length(); i++) {
             char token = s.charAt(i);
-            if (String.valueOf(token).matches("[.|*]")) {
+            if (String.valueOf(token).matches("[&|*+?]")) {
                 while (!operatorStack.isEmpty() && operatorStack.peek() != '(' && operatorPrecedence.get(operatorStack.peek()) >= operatorPrecedence.get(token)) {
                     res.append(operatorStack.pop());
                 }
